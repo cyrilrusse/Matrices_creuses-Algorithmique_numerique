@@ -15,6 +15,7 @@ struct creuse_t
     int *rows;
     float *values;
     unsigned int nz;
+    unsigned int taille_startCol;
     unsigned int *matricule_colonne;
     unsigned int *matricule_different;
 };
@@ -78,6 +79,10 @@ void swap(unsigned int *array, int a, int b)
     unsigned int temp = array[a];
     array[a] = array[b];
     array[b] = temp;
+}
+
+void transpose(Creuse *matrice){
+
 }
 
 Creuse **lecture(char* nom_fichier){
@@ -188,10 +193,10 @@ Creuse **lecture(char* nom_fichier){
     M->matricule_colonne = tab_joueur_gagnant;
     M->matricule_different = tab_joueur_different;
     M->nz = nombre_result;
-    M->startCol = malloc(sizeof(int)*(nombre_joueur_gagnant+1));
-    M->startCol[nombre_joueur_gagnant] = -1;
+    M->startCol = malloc(sizeof(int)*nombre_joueur_gagnant);
     M->rows = malloc(sizeof(int)*nombre_result);
     M->values = malloc(sizeof(float)*nombre_result);
+    M->taille_startCol = nombre_joueur_gagnant;
 
     Creuse *A = malloc(sizeof(Creuse));
     if(!A)
@@ -199,10 +204,10 @@ Creuse **lecture(char* nom_fichier){
     A->matricule_colonne = tab_joueur_gagnant;
     A->matricule_different = tab_joueur_different;
     A->nz = nombre_result;
-    A->startCol = malloc(sizeof(int) * (nombre_joueur_gagnant + 1));
-    A->startCol[nombre_joueur_gagnant] = -1;
+    A->startCol = malloc(sizeof(int) * nombre_joueur_gagnant);
     A->rows = malloc(sizeof(int) * nombre_result);
     A->values = malloc(sizeof(float) * nombre_result);
+    A->taille_startCol = nombre_joueur_gagnant;
 
     tampon = INT_MAX;
     unsigned int index_col = 0;
