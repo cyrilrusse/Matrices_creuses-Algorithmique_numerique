@@ -1,5 +1,5 @@
 typedef struct creuse_t Creuse;
-typedef struct resultat_t Resultat;
+// typedef struct resultat_t Resultat;
 
 Creuse **lecture(char* nom_fichier);
 
