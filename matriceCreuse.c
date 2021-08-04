@@ -96,7 +96,6 @@ int transpose(Creuse *matrice){
         return -1;
     }
 
-    printf("%u\n", matrice->nombre_joueur_different);
 
     for(unsigned int i = 0; i<matrice->nz; i++)
         occurence_ligne[matrice->rows[i]]++;
@@ -107,11 +106,25 @@ int transpose(Creuse *matrice){
             nombre_ligne++;
     }
 
+    unsigned int *rowcount = malloc(sizeof(unsigned int)*nombre_ligne);
+    if(!rowcount){
+        free(matrice_transposee);
+        free(occurence_ligne);
+        return -1;
+    }
+
+    for(unsigned int i = 0, j=0; i<nombre_ligne; i++){
+        while (occurence_ligne[j]==0) j++;
+        rowcount[i]=occurence_ligne[j];
+        j++;
+    }
+
 
     starCol_transpose = malloc(sizeof(unsigned int)*nombre_ligne);
     if(!starCol_transpose){
         free(matrice_transposee);
         free(occurence_ligne);
+        free(rowcount);
         return -1;
     }
 
@@ -120,6 +133,7 @@ int transpose(Creuse *matrice){
         free(matrice_transposee);
         free(occurence_ligne);
         free(starCol_transpose);
+        free(rowcount);
         return -1;
     }
     
@@ -139,7 +153,7 @@ int transpose(Creuse *matrice){
 
     for(int i = 0; i<matrice_transposee->taille_startCol; i++){
         printf("starCol[%d]:%u\tmatricule[%u]:%u\n", i, matrice_transposee->startCol[i],i, matrice_transposee->matricule_colonne[i]);
-    }    
+    }
     
 
     
