@@ -12,7 +12,7 @@
 struct creuse_t
 {
     unsigned int *startCol;
-    unsigned int *rows;
+    int *rows;
     float *values;
     unsigned int nz;
     unsigned int taille_startCol;
