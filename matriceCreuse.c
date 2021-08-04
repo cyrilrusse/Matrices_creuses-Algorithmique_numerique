@@ -100,8 +100,7 @@ int transpose(Creuse *matrice){
     for(unsigned int i = 0; i<matrice->nz; i++)
         occurence_ligne[matrice->rows[i]]++;
 
-    for (unsigned int i = 0; i < matrice->nombre_joueur_different; i++)
-    {
+    for (unsigned int i = 0; i < matrice->nombre_joueur_different; i++){
         if(occurence_ligne[i]!=0)
             nombre_ligne++;
     }
@@ -112,13 +111,6 @@ int transpose(Creuse *matrice){
         free(occurence_ligne);
         return -1;
     }
-
-    for(unsigned int i = 0, j=0; i<nombre_ligne; i++){
-        while (occurence_ligne[j]==0) j++;
-        rowcount[i]=occurence_ligne[j];
-        j++;
-    }
-
 
     starCol_transpose = malloc(sizeof(unsigned int)*nombre_ligne);
     if(!starCol_transpose){
@@ -137,13 +129,19 @@ int transpose(Creuse *matrice){
         return -1;
     }
     
+    for(unsigned int i = 0, j=0; i<nombre_ligne; i++){
+        while (occurence_ligne[j]==0) j++;
+        rowcount[i]=occurence_ligne[j];
+        matricule_starCol_transpose[i] = j;
+        j++;
+    }
+
     matrice_transposee->startCol = starCol_transpose;
     matrice_transposee->startCol[0] = 0;
-    printf("nombre ligne %u\n", nombre_ligne);
+
     for(unsigned int i = 1, j=0; i<nombre_ligne; i++){
         while (occurence_ligne[j]==0) j++;
         
-        matricule_starCol_transpose[i]=j;
         matrice_transposee->startCol[i] = matrice_transposee->startCol[i-1]+occurence_ligne[j];
         j++;
     }
@@ -151,7 +149,7 @@ int transpose(Creuse *matrice){
     matrice_transposee->matricule_colonne = matricule_starCol_transpose;
     matrice_transposee->taille_startCol = nombre_ligne;
 
-    for(int i = 0; i<matrice_transposee->taille_startCol; i++){
+    for(unsigned int i = 0; i<matrice_transposee->taille_startCol; i++){
         printf("starCol[%d]:%u\tmatricule[%u]:%u\n", i, matrice_transposee->startCol[i],i, matrice_transposee->matricule_colonne[i]);
     }
     
@@ -272,7 +270,6 @@ Creuse **lecture(char* nom_fichier){
     M->rows = malloc(sizeof(unsigned int) * nombre_result);
     M->values = malloc(sizeof(float)*nombre_result);
     M->taille_startCol = nombre_joueur_gagnant;
-    printf("%u\n", nombre_joueur_different);
     M->nombre_joueur_different = nombre_joueur_different;
 
 
