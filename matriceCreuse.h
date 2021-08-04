@@ -14,3 +14,5 @@ void quicksort(unsigned int *array1, int p, int r);
 int partition(unsigned int *array1, int p, int r);
 
 int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille);
+
+int transpose(Creuse *matrice);

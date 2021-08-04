@@ -11,12 +11,13 @@
 
 struct creuse_t
 {
-    int *startCol;
-    int *rows;
+    unsigned int *startCol;
+    unsigned int *rows;
     float *values;
     unsigned int nz;
     unsigned int taille_startCol;
     unsigned int *matricule_colonne;
+    unsigned int nombre_joueur_different;
     unsigned int *matricule_different;
 };
 
@@ -81,8 +82,68 @@ void swap(unsigned int *array, int a, int b)
     array[b] = temp;
 }
 
-void transpose(Creuse *matrice){
+int transpose(Creuse *matrice){
+    Creuse *matrice_transposee;
+    unsigned int *occurence_ligne, nombre_ligne = 0, *starCol_transpose, *rows_transpose;
+    float *values_transposee;
 
+    matrice_transposee = malloc(sizeof(Creuse));
+    if(!matrice_transposee)
+        return -1;
+    occurence_ligne = calloc(matrice->nombre_joueur_different, sizeof(unsigned int));
+    if(!occurence_ligne){
+        free(matrice_transposee);
+        return -1;
+    }
+
+    printf("%u\n", matrice->nombre_joueur_different);
+
+    for(unsigned int i = 0; i<matrice->nz; i++)
+        occurence_ligne[matrice->rows[i]]++;
+
+    for (unsigned int i = 0; i < matrice->nombre_joueur_different; i++)
+    {
+        if(occurence_ligne[i]!=0)
+            nombre_ligne++;
+    }
+
+
+    starCol_transpose = malloc(sizeof(unsigned int)*nombre_ligne);
+    if(!starCol_transpose){
+        free(matrice_transposee);
+        free(occurence_ligne);
+        return -1;
+    }
+
+    unsigned int *matricule_starCol_transpose = malloc(sizeof(unsigned int)*nombre_ligne);
+    if(!matricule_starCol_transpose){
+        free(matrice_transposee);
+        free(occurence_ligne);
+        free(starCol_transpose);
+        return -1;
+    }
+    
+    matrice_transposee->startCol = starCol_transpose;
+    matrice_transposee->startCol[0] = 0;
+    printf("nombre ligne %u\n", nombre_ligne);
+    for(unsigned int i = 1, j=0; i<nombre_ligne; i++){
+        while (occurence_ligne[j]==0) j++;
+        
+        matricule_starCol_transpose[i]=j;
+        matrice_transposee->startCol[i] = matrice_transposee->startCol[i-1]+occurence_ligne[j];
+        j++;
+    }
+
+    matrice_transposee->matricule_colonne = matricule_starCol_transpose;
+    matrice_transposee->taille_startCol = nombre_ligne;
+
+    for(int i = 0; i<matrice_transposee->taille_startCol; i++){
+        printf("starCol[%d]:%u\tmatricule[%u]:%u\n", i, matrice_transposee->startCol[i],i, matrice_transposee->matricule_colonne[i]);
+    }    
+    
+
+    
+    return 0;
 }
 
 Creuse **lecture(char* nom_fichier){
@@ -165,7 +226,7 @@ Creuse **lecture(char* nom_fichier){
         }
     }
     else{
-        while (index_perdant != nombre_joueur_jamais_gagne){
+        while (index_gagnant != nombre_joueur_gagnant){
             tab_joueur_different[nombre_joueur_different] = tab_joueur_gagnant[index_gagnant];
             index_gagnant++;
             nombre_joueur_different++;
@@ -193,10 +254,13 @@ Creuse **lecture(char* nom_fichier){
     M->matricule_colonne = tab_joueur_gagnant;
     M->matricule_different = tab_joueur_different;
     M->nz = nombre_result;
-    M->startCol = malloc(sizeof(int)*nombre_joueur_gagnant);
-    M->rows = malloc(sizeof(int)*nombre_result);
+    M->startCol = malloc(sizeof(unsigned int) * nombre_joueur_gagnant);
+    M->rows = malloc(sizeof(unsigned int) * nombre_result);
     M->values = malloc(sizeof(float)*nombre_result);
     M->taille_startCol = nombre_joueur_gagnant;
+    printf("%u\n", nombre_joueur_different);
+    M->nombre_joueur_different = nombre_joueur_different;
+
 
     Creuse *A = malloc(sizeof(Creuse));
     if(!A)
@@ -204,10 +268,11 @@ Creuse **lecture(char* nom_fichier){
     A->matricule_colonne = tab_joueur_gagnant;
     A->matricule_different = tab_joueur_different;
     A->nz = nombre_result;
-    A->startCol = malloc(sizeof(int) * nombre_joueur_gagnant);
-    A->rows = malloc(sizeof(int) * nombre_result);
+    A->startCol = malloc(sizeof(unsigned int) * nombre_joueur_gagnant);
+    A->rows = malloc(sizeof(unsigned int) * nombre_result);
     A->values = malloc(sizeof(float) * nombre_result);
     A->taille_startCol = nombre_joueur_gagnant;
+    A->nombre_joueur_different = nombre_joueur_different;
 
     tampon = INT_MAX;
     unsigned int index_col = 0;
@@ -234,6 +299,9 @@ Creuse **lecture(char* nom_fichier){
 
     // for(unsigned int i = 0; i<nombre_joueur_different; i++)
     //     printf("joueur[%u] = %u\n", i, tab_joueur_different[i]);
+
+    // for(unsigned int i = 0; i<nombre_result; i++)
+    //     printf("tab1[%u]:%u\ttab2[%u]:%u\n",i, tab_j1[i], i, tab_j2[i]);
 
     // printf("nbr j  %d\n", nombre_joueur_different);
     // for(int k = 0; k<20; k++){
