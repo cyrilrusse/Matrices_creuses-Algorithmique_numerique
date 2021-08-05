@@ -3,7 +3,7 @@
 #include "matriceCreuse.h"
 
 int main(){
-    char *nom_fichier = "aft_test.txt";
+    char *nom_fichier = "aft.txt";
 
     Creuse **matrice = lecture(nom_fichier);
 
