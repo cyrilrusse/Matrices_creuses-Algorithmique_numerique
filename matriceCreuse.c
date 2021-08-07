@@ -3,12 +3,6 @@
 #include <limits.h>
 #include "matriceCreuse.h"
 
-// struct resultat_t{
-//     int joueurcol;
-//     int joueurlig;
-//     double valeur;
-// };
-
 struct creuse_t
 {
     unsigned int *startCol;
@@ -33,7 +27,9 @@ static int partition(unsigned int *array1, int p, int r);
 
 static int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille);
 
-static Creuse *produitMatricesCreuses(Creuse *matrice1, Creuse *matrice 2);
+static Creuse *produitMatricesCreuses(Creuse *matrice1, Creuse *matrice2);
+
+// static unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, int taille_tab1, int taille_tab2);
 
 void quicksort(unsigned int *array1, int p, int r){
     int position_pivot;
@@ -104,17 +100,14 @@ int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille)
     unsigned int born_inf = 0;
     unsigned int centre;
 
-    while (born_sup >= born_inf)
-    {
+    while (born_sup >= born_inf){
         centre = (born_inf + born_sup) / 2;
-        if (tab[centre] > elem)
-        {
+        if (tab[centre] > elem){
             if (!centre)
                 return -1;
             born_sup = centre - 1;
         }
-        else if (tab[centre] < elem)
-        {
+        else if (tab[centre] < elem){
             born_inf = centre + 1;
         }
         else
@@ -123,7 +116,43 @@ int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille)
     return -1;
 }
 
+unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2){
+    
+    unsigned int nombre_elem_dif = *taille_tab1;
+    printf("bite\n");
+    for(unsigned int i = 0; i<taille_tab2; i++){
+        if(recherche_dico(tab1, tab2[i], *taille_tab1)==-1){
+            nombre_elem_dif++;
+            printf("nombre elem:%u, %u\n", nombre_elem_dif, tab2[i]);
+        }
+    }
 
+    unsigned int *tab_union = malloc(sizeof(unsigned int)*nombre_elem_dif);
+    if(!tab_union)
+        return NULL;
+
+    unsigned int indice_tab1=0, indice_tab2=0, indice_tab=0;
+    while ((indice_tab1<*taille_tab1 || indice_tab2<taille_tab2) && indice_tab<nombre_elem_dif){
+        if(tab1[indice_tab1]==tab2[indice_tab2]){
+            tab_union[indice_tab] = tab1[indice_tab1];
+            indice_tab1++;
+            indice_tab2++;
+        }
+        else if(tab1[indice_tab1]<tab2[indice_tab2]){
+            tab_union[indice_tab] = tab1[indice_tab1];
+            indice_tab1++;
+        }
+        else if (tab1[indice_tab1]>tab2[indice_tab2]){
+            tab_union[indice_tab] = tab2[indice_tab2];
+            indice_tab2++;
+        }
+        indice_tab++;
+    }
+
+    *taille_tab1 = nombre_elem_dif;
+    
+    return tab_union;
+}
 
 Creuse **lecture(char* nom_fichier){
     Creuse **tab_matrice = malloc(sizeof(Creuse*)*2);
@@ -276,6 +305,7 @@ Creuse **lecture(char* nom_fichier){
 
     tab_matrice[0] = A;
     tab_matrice[1] = M;
+
     // for(unsigned int i=0; i<nombre_joueur_gagnant; i++){
     //     printf("StartCol[%u]=%u\n", i, A->startCol[i]);
     // }
@@ -431,6 +461,6 @@ float *produitMatriceVecteurDense(Creuse *matrice, float *vecteur_dense){
     return resulat_produit;
 }
 
-Creuse *produitMatricesCreuses(Creuse *matrice1, Creuse *matrice 2){
+Creuse *produitMatricesCreuses(Creuse *matrice1, Creuse *matrice2){
 
 }
