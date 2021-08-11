@@ -3,13 +3,13 @@
 #include "matriceCreuse.h"
 
 int main(){
-    char *nom_fichier = "aft_test.txt";
+    char *nom_fichier = "aft.txt";
 
     Creuse **matrice = lecture(nom_fichier);
 
 
 
-    produitMatriceVecteurCreux(matrice[1], NULL);
+    produitMatriceVecteurCreux(matrice[0], NULL);
     // unsigned int tab1[7] = {1, 2, 3, 5, 6, 7, 10};
     // unsigned int tab2[3] = {0, 5, 11};
     // unsigned int taille_tab1 = 7;

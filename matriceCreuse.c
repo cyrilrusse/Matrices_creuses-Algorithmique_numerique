@@ -459,16 +459,22 @@ Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
     //     return NULL;
 
 
+    //initialisation vecteur test
     vecteur_creux = malloc(sizeof(Creuse));
-    vecteur_creux->taille_startCol=1;
+    vecteur_creux->taille_startCol = 1;
     vecteur_creux->startCol = malloc(sizeof(unsigned int));
-    vecteur_creux->startCol[0]=0;
-    vecteur_creux->nz = 4;
-    vecteur_creux->rows = malloc(sizeof(unsigned int)*4);
+    vecteur_creux->startCol[0] = 0;
+    vecteur_creux->nz = 1;
+    vecteur_creux->rows = malloc(sizeof(unsigned int));
     vecteur_creux->rows[0] = 0;
-    vecteur_creux->rows[1] = 1;
-    vecteur_creux->rows[2] = 2;
-    vecteur_creux->rows[3] = 4;
+    // vecteur_creux->rows[1] = 1;
+    // vecteur_creux->rows[2] = 2;
+    // vecteur_creux->rows[3] = 3;
+    vecteur_creux->values = malloc(sizeof(float));
+    vecteur_creux->values[0] = 1.;
+    // vecteur_creux->values[1] = 4.;
+    // vecteur_creux->values[2] = 1.5;
+    // vecteur_creux->values[3] = 1.;
 
     if(vecteur_creux->taille_startCol!=1)
         return NULL;
@@ -484,12 +490,9 @@ Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
         return NULL;
     }
 
-    result_produit->rows = malloc(sizeof(int));
-    if(!result_produit->rows){
-        free(result_produit->startCol);
-        free(result_produit);
-        return NULL;
-    }
+    result_produit->startCol[0] = 0;
+    result_produit->nombre_joueur_different = matrice->nombre_joueur_different;
+    result_produit->matricule_different = matrice->matricule_different;
 
     //déterminer les éléments non nuls de result_produit
     int indice_col_matrice = 0;
@@ -514,8 +517,37 @@ Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
         }
     }
 
-    for(unsigned int i = 0; i<taille_tab_ligne_nz; i++)
-        printf("tab[%u]:%u\n", i, tab_ligne_non_nulle[i]);
-    
-    return NULL;
+
+    result_produit->rows = tab_ligne_non_nulle;
+    result_produit->nz = taille_tab_ligne_nz;
+
+
+    result_produit->values = calloc(taille_tab_ligne_nz, sizeof(float));
+    if(!result_produit->values){
+        free(result_produit->startCol);
+        free(result_produit);
+        return NULL;
+    }
+
+    int indice_value = 0;
+    for(unsigned int i = 0; i<vecteur_creux->nz; i++){
+        if ((indice_col_matrice = recherche_dico(matrice->matricule_colonne, vecteur_creux->rows[i], matrice->taille_startCol)) != -1)
+        {
+            if (indice_col_matrice < (matrice->taille_startCol - 1))
+                taille_col = matrice->startCol[indice_col_matrice + 1] - matrice->startCol[indice_col_matrice];
+            else
+                taille_col = matrice->nz - matrice->startCol[indice_col_matrice];
+
+            for(unsigned int j=0; j<taille_col; j++){
+                indice_value = recherche_dico(result_produit->rows, matrice->rows[matrice->startCol[indice_col_matrice]+j], result_produit->nz);
+                result_produit->values[indice_value] += vecteur_creux->values[i] * matrice->values[matrice->startCol[indice_col_matrice + j]];
+            }
+        }
+    }
+
+    for(unsigned int i = 0; i<result_produit->nz; i++)
+        printf("row[%u]:%u, value[%u]:%f\n", i, result_produit->rows[i], i, result_produit->values[i]);
+
+
+    return result_produit;
 }
