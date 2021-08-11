@@ -27,9 +27,7 @@ static int partition(unsigned int *array1, int p, int r);
 
 static int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille);
 
-static Creuse *produitMatricesCreuses(Creuse *matrice1, Creuse *matrice2);
-
-// static unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, int taille_tab1, int taille_tab2);
+static unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2);
 
 void quicksort(unsigned int *array1, int p, int r){
     int position_pivot;
@@ -119,12 +117,14 @@ int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille)
 unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2){
     
     unsigned int nombre_elem_dif = *taille_tab1;
-    printf("bite\n");
+    if(nombre_elem_dif==0){
+        *taille_tab1 = taille_tab2;
+        return tab2;
+    }
+
     for(unsigned int i = 0; i<taille_tab2; i++){
-        if(recherche_dico(tab1, tab2[i], *taille_tab1)==-1){
+        if(recherche_dico(tab1, tab2[i], *taille_tab1)==-1)
             nombre_elem_dif++;
-            printf("nombre elem:%u, %u\n", nombre_elem_dif, tab2[i]);
-        }
     }
 
     unsigned int *tab_union = malloc(sizeof(unsigned int)*nombre_elem_dif);
@@ -151,6 +151,7 @@ unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, unsigned int *ta
 
     *taille_tab1 = nombre_elem_dif;
     
+    free(tab1);
     return tab_union;
 }
 
@@ -267,7 +268,7 @@ Creuse **lecture(char* nom_fichier){
     M->matricule_different = tab_joueur_different;
     M->nz = nombre_result;
     M->startCol = malloc(sizeof(unsigned int) * nombre_joueur_gagnant);
-    M->rows = malloc(sizeof(unsigned int) * nombre_result);
+    M->rows = malloc(sizeof(int) * nombre_result);
     M->values = malloc(sizeof(float)*nombre_result);
     M->taille_startCol = nombre_joueur_gagnant;
     M->nombre_joueur_different = nombre_joueur_different;
@@ -280,12 +281,11 @@ Creuse **lecture(char* nom_fichier){
     A->matricule_different = tab_joueur_different;
     A->nz = nombre_result;
     A->startCol = malloc(sizeof(unsigned int) * nombre_joueur_gagnant);
-    A->rows = malloc(sizeof(unsigned int) * nombre_result);
+    A->rows = malloc(sizeof(int) * nombre_result);
     A->values = malloc(sizeof(float) * nombre_result);
     A->taille_startCol = nombre_joueur_gagnant;
     A->nombre_joueur_different = nombre_joueur_different;
 
-    tampon = INT_MAX;
     unsigned int index_col = 0;
     for(unsigned int i = 0; i<nombre_result;){
         M->startCol[index_col] = i;
@@ -293,49 +293,42 @@ Creuse **lecture(char* nom_fichier){
         for(unsigned int j = 0; j<tab_victoire[index_col]; j++){
             M->rows[i] = recherche_dico(tab_joueur_different, tab_j2[i], nombre_joueur_different);
             M->values[i] = 1;
-            A->rows[i] = recherche_dico(tab_joueur_different, tab_j2[i], nombre_joueur_different);
+            A->rows[i] = M->rows[i];
             A->values[i] = 1./tab_victoire[index_col];
             i++;
         }
         index_col++;
     }
 
-    transpose(A);
-    transpose(M);
+    tab_matrice[0] = transpose(A);
+    tab_matrice[1] = transpose(M);
 
-    tab_matrice[0] = A;
-    tab_matrice[1] = M;
+    free(A->matricule_colonne);
+    free(A->rows);
+    free(A->startCol);
+    free(A->values);
+    free(M->rows);
+    free(M->startCol);
+    free(M->values);
 
-    // for(unsigned int i=0; i<nombre_joueur_gagnant; i++){
-    //     printf("StartCol[%u]=%u\n", i, A->startCol[i]);
-    // }
-    // for(unsigned int i = 0; i<nombre_result; i++)
-    //     printf("rows[%u]=%u\tvalues[%u]=%f\n", i, A->rows[i], i, A->values[i]);
 
-    // for(unsigned int i = 0; i<nombre_joueur_different; i++)
-    //     printf("joueur[%u] = %u\n", i, tab_joueur_different[i]);
-
-    // for(unsigned int i = 0; i<nombre_result; i++)
-    //     printf("tab1[%u]:%u\ttab2[%u]:%u\n",i, tab_j1[i], i, tab_j2[i]);
-
-    // printf("nbr j  %d\n", nombre_joueur_different);
-    // for(int k = 0; k<20; k++){
-    //     printf("%d \n", tab_joueur_different[k]);
-    // }
     return tab_matrice;
 }
 
-int transpose(Creuse *matrice){
+Creuse *transpose(Creuse *matrice){
+    if(!matrice)
+        return NULL;
+
     Creuse *matrice_transposee;
-    unsigned int *occurence_ligne, nombre_ligne = 0, *starCol_transpose;
+    unsigned int *occurence_ligne, nombre_ligne = 0;
 
     matrice_transposee = malloc(sizeof(Creuse));
     if(!matrice_transposee)
-        return -1;
+        return NULL;
     occurence_ligne = calloc(matrice->nombre_joueur_different, sizeof(unsigned int));
     if(!occurence_ligne){
         free(matrice_transposee);
-        return -1;
+        return NULL;
     }
 
 
@@ -351,36 +344,65 @@ int transpose(Creuse *matrice){
     if(!rowcount){
         free(matrice_transposee);
         free(occurence_ligne);
-        return -1;
+        return NULL;
     }
 
-    starCol_transpose = malloc(sizeof(unsigned int)*nombre_ligne);
-    if(!starCol_transpose){
+    matrice_transposee->startCol = malloc(sizeof(unsigned int)*nombre_ligne);
+    if (!matrice_transposee->startCol)
+    {
         free(matrice_transposee);
         free(occurence_ligne);
         free(rowcount);
-        return -1;
+        return NULL;
     }
 
-    unsigned int *matricule_starCol_transpose = malloc(sizeof(unsigned int)*nombre_ligne);
-    if(!matricule_starCol_transpose){
+    matrice_transposee->matricule_colonne = malloc(sizeof(unsigned int) * nombre_ligne);
+    if(!matrice_transposee->matricule_colonne){
         free(matrice_transposee);
         free(occurence_ligne);
-        free(starCol_transpose);
+        free(matrice_transposee->startCol);
         free(rowcount);
-        return -1;
+        return NULL;
     }
-    
+
+    matrice_transposee->rows = malloc(sizeof(int) * matrice->nz);
+    if (!matrice_transposee->rows)
+    {
+        free(matrice_transposee);
+        free(occurence_ligne);
+        free(matrice_transposee->startCol);
+        free(rowcount);
+        free(matrice_transposee->matricule_colonne);
+        return NULL;
+    }
+
+    matrice_transposee->values = malloc(sizeof(float) * matrice->nz);
+    if (!matrice_transposee->values)
+    {
+        free(matrice_transposee->rows);
+        free(matrice_transposee);
+        free(occurence_ligne);
+        free(matrice_transposee->startCol);
+        free(rowcount);
+        free(matrice_transposee->matricule_colonne);
+        return NULL;
+    }
+
+    matrice_transposee->startCol[0] = 0;
+    matrice_transposee->taille_startCol = nombre_ligne;
+    matrice_transposee->nombre_joueur_different = matrice->nombre_joueur_different;
+    matrice_transposee->matricule_different = matrice->matricule_different;
+    matrice_transposee->nz = matrice->nz;
+
+    //initialisation des matricules correspondants aux colonnes
     for(unsigned int i = 0, j=0; i<nombre_ligne; i++){
         while (occurence_ligne[j]==0) j++;
         rowcount[i]=occurence_ligne[j];
-        matricule_starCol_transpose[i] = j;
+        matrice_transposee->matricule_colonne[i] = j;
         j++;
     }
 
-    matrice_transposee->startCol = starCol_transpose;
-    matrice_transposee->startCol[0] = 0;
-
+    //initialisation de startCol
     for(unsigned int i = 1, j=0; i<nombre_ligne; i++){
         while (occurence_ligne[j]==0) j++;
         
@@ -388,57 +410,28 @@ int transpose(Creuse *matrice){
         j++;
     }
 
-    matrice_transposee->matricule_colonne = matricule_starCol_transpose;
-    matrice_transposee->taille_startCol = nombre_ligne;
-
-    // for(unsigned int i = 0; i<matrice_transposee->taille_startCol; i++){
-    //     printf("starCol[%d]:%u\tmatriculecolTranspose[%u]:%u\tmatriculecol[%u]:%u\n", i, matrice_transposee->startCol[i], i, matrice_transposee->matricule_colonne[i], i, matrice->matricule_colonne[i]);
-    // }
-
-    matrice_transposee->rows = malloc(sizeof(int)*matrice->nz);
-    if(!matrice_transposee->rows){
-        free(matrice_transposee);
-        free(occurence_ligne);
-        free(starCol_transpose);
-        free(rowcount);
-        free(matricule_starCol_transpose);
-        return -1;
-    }
-    
+    //initialisation des lignes à -1 afin de savoir par après lesquelles ne sont pas encore remplies
     for(unsigned int i = 0; i<matrice->nz; i++)
         matrice_transposee->rows[i] = -1;
 
-    matrice_transposee->values = malloc(sizeof(float)*matrice->nz);
-    if(!matrice_transposee->values){
-        free(matrice_transposee->rows);
-        free(matrice_transposee);
-        free(occurence_ligne);
-        free(starCol_transpose);
-        free(rowcount);
-        free(matricule_starCol_transpose);
-    }
 
+    //initialisation de rows et values
     unsigned int indice_Startcol_transposee = 0, indice_rows_transposee = 0, indice_Startcol = 0;
     for(unsigned int i = 0; i<matrice->nz; i++){
 
         if(indice_Startcol<matrice->taille_startCol && matrice->startCol[indice_Startcol+1]==i)
             indice_Startcol++;
 
-        indice_Startcol_transposee = recherche_dico(matricule_starCol_transpose, matrice->rows[i], matrice_transposee->taille_startCol);
+        indice_Startcol_transposee = recherche_dico(matrice_transposee->matricule_colonne, matrice->rows[i], matrice_transposee->taille_startCol);
         indice_rows_transposee = matrice_transposee->startCol[indice_Startcol_transposee];
         while (matrice_transposee->rows[indice_rows_transposee] != -1) indice_rows_transposee++;
         
-
-
         matrice_transposee->rows[indice_rows_transposee] = matrice->matricule_colonne[indice_Startcol];
         matrice_transposee->values[indice_rows_transposee] = matrice->values[i];
     }
 
-    // for(unsigned int i = 0; i<matrice->nz; i++)
-    //     printf("Mt[%u]:%d\tvalues:%f\n", i, matrice_transposee->rows[i], matrice_transposee->values[i]);
 
-    
-    return 0;
+    return matrice_transposee;
 }
 
 float *produitMatriceVecteurDense(Creuse *matrice, float *vecteur_dense){
@@ -451,7 +444,7 @@ float *produitMatriceVecteurDense(Creuse *matrice, float *vecteur_dense){
         return NULL;
 
     for(unsigned int i = 0; i<matrice->nz; i++){
-        if (indice_Startcol < matrice->taille_startCol && matrice->startCol[indice_Startcol + 1] == i)
+        if (indice_Startcol < (matrice->taille_startCol-1) && matrice->startCol[indice_Startcol + 1] == i)
             indice_Startcol++;
 
         resulat_produit[matrice->rows[i]] += vecteur_dense[matrice->matricule_colonne[indice_Startcol]] * matrice->values[i];
@@ -461,6 +454,68 @@ float *produitMatriceVecteurDense(Creuse *matrice, float *vecteur_dense){
     return resulat_produit;
 }
 
-Creuse *produitMatricesCreuses(Creuse *matrice1, Creuse *matrice2){
+Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
+    // if(!matrice || !vecteur_creux)
+    //     return NULL;
 
+
+    vecteur_creux = malloc(sizeof(Creuse));
+    vecteur_creux->taille_startCol=1;
+    vecteur_creux->startCol = malloc(sizeof(unsigned int));
+    vecteur_creux->startCol[0]=0;
+    vecteur_creux->nz = 4;
+    vecteur_creux->rows = malloc(sizeof(unsigned int)*4);
+    vecteur_creux->rows[0] = 0;
+    vecteur_creux->rows[1] = 1;
+    vecteur_creux->rows[2] = 2;
+    vecteur_creux->rows[3] = 4;
+
+    if(vecteur_creux->taille_startCol!=1)
+        return NULL;
+    
+    Creuse *result_produit = malloc(sizeof(Creuse));
+    if(!result_produit)
+        return NULL;
+
+    result_produit->taille_startCol = 1;
+    result_produit->startCol = malloc(sizeof(unsigned int));
+    if(!result_produit->startCol){
+        free(result_produit);
+        return NULL;
+    }
+
+    result_produit->rows = malloc(sizeof(int));
+    if(!result_produit->rows){
+        free(result_produit->startCol);
+        free(result_produit);
+        return NULL;
+    }
+
+    //déterminer les éléments non nuls de result_produit
+    int indice_col_matrice = 0;
+    unsigned int taille_col = 0, taille_tab_ligne_nz = 0;
+    unsigned int *ptaille_tab_ligne_nz = &taille_tab_ligne_nz;
+    unsigned int *tab_ligne_non_nulle = NULL, *tab_ligne_intermediaire = NULL;
+    for(unsigned int i=0; i<vecteur_creux->nz; i++){
+        if ((indice_col_matrice = recherche_dico(matrice->matricule_colonne, vecteur_creux->rows[i], matrice->taille_startCol)) != -1){
+            if(indice_col_matrice<(matrice->taille_startCol-1))
+                taille_col = matrice->startCol[indice_col_matrice + 1] - matrice->startCol[indice_col_matrice];
+            else
+                taille_col = matrice->nz - matrice->startCol[indice_col_matrice];
+        
+            tab_ligne_intermediaire = malloc(sizeof(unsigned int)*taille_col);
+            for(unsigned int j = 0; j<taille_col; j++){
+                tab_ligne_intermediaire[j]=matrice->rows[indice_col_matrice+j];
+            }
+
+            tab_ligne_non_nulle = union_tab(tab_ligne_non_nulle, tab_ligne_intermediaire, ptaille_tab_ligne_nz, taille_col);
+            if(tab_ligne_non_nulle!=tab_ligne_intermediaire)
+                free(tab_ligne_intermediaire);
+        }
+    }
+
+    for(unsigned int i = 0; i<taille_tab_ligne_nz; i++)
+        printf("tab[%u]:%u\n", i, tab_ligne_non_nulle[i]);
+    
+    return NULL;
 }
