@@ -9,18 +9,12 @@ int main(){
 
 
 
-    produitMatriceVecteurCreux(matrice[0], NULL);
-    // unsigned int tab1[7] = {1, 2, 3, 5, 6, 7, 10};
-    // unsigned int tab2[3] = {0, 5, 11};
-    // unsigned int taille_tab1 = 7;
-    // unsigned int *pointeur = &taille_tab1;
-    // unsigned int *tab_union = union_tab(tab1, tab2, pointeur, 3);
+    Creuse *result = produitMatriceVecteurCreux(matrice[0], NULL);
+    // libereCreuse(result, 0, 1);
 
-    // printf("taille tab1 : %u\n", taille_tab1);
-    // for (unsigned int i = 0; i < 9; i++)
-    // {
-    //     printf("tab[%u]:%u\n", i, tab_union[i]);
-    // }
+    libereCreuse(matrice[0], 0, 0);
+    libereCreuse(matrice[1], 1, 1);
+    free(matrice);
 
     return 0;
 }

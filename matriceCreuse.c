@@ -27,7 +27,7 @@ static int partition(unsigned int *array1, int p, int r);
 
 static int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille);
 
-static unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2);
+static int *union_tab(int *tab1, int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2);
 
 void quicksort(unsigned int *array1, int p, int r){
     int position_pivot;
@@ -114,7 +114,7 @@ int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille)
     return -1;
 }
 
-unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2){
+int *union_tab(int *tab1, int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2){
     
     unsigned int nombre_elem_dif = *taille_tab1;
     if(nombre_elem_dif==0){
@@ -123,11 +123,11 @@ unsigned int *union_tab(unsigned int *tab1, unsigned int *tab2, unsigned int *ta
     }
 
     for(unsigned int i = 0; i<taille_tab2; i++){
-        if(recherche_dico(tab1, tab2[i], *taille_tab1)==-1)
+        if(recherche_dico((unsigned int*)tab1, tab2[i], *taille_tab1)==-1)
             nombre_elem_dif++;
     }
 
-    unsigned int *tab_union = malloc(sizeof(unsigned int)*nombre_elem_dif);
+    int *tab_union = malloc(sizeof(int)*nombre_elem_dif);
     if(!tab_union)
         return NULL;
 
@@ -174,7 +174,13 @@ Creuse **lecture(char* nom_fichier){
     unsigned int *tab_j1 = malloc(sizeof(unsigned int)*nombre_result);
     unsigned int *tab_j2 = malloc(sizeof(unsigned int)*nombre_result);
 
-    if (!(fichier = fopen(nom_fichier, "r")))    return NULL;
+    if (!(fichier = fopen(nom_fichier, "r"))){
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        return NULL;
+    }
+
     //lecture fichier + tri des 2 tableaux en fonction du tableau des gagnants
     while (fscanf(fichier, "%u", &tampon)!=EOF){
         tab_j1[compteur] = tampon;
@@ -192,6 +198,13 @@ Creuse **lecture(char* nom_fichier){
     quicksort2(tab_j1, tab_j2, 0, nombre_result-1);
 
     unsigned int *tab_joueur_gagnant = malloc(sizeof(unsigned int)*nombre_result);
+    if(!tab_joueur_gagnant){
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        return NULL;
+    }
+
     tampon = INT_MAX;
     for(unsigned int j = 0; j<nombre_result; j++){
         if(tampon != tab_j1[j]){
@@ -203,6 +216,15 @@ Creuse **lecture(char* nom_fichier){
 
     //création tab joueur jamais gagne
     unsigned int *tab_joueur_jamais_gagne = malloc(sizeof(unsigned int)*nombre_result);
+    if (!tab_joueur_jamais_gagne)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        return NULL;
+    }
+
     for(unsigned int j = 0; j<nombre_result; j++){
         if (recherche_dico(tab_joueur_gagnant, tab_j2[j], nombre_joueur_gagnant) == -1 && recherche_dico(tab_joueur_jamais_gagne, tab_j2[j], nombre_joueur_jamais_gagne)==-1){
             tab_joueur_jamais_gagne[nombre_joueur_jamais_gagne] = tab_j2[j];
@@ -214,6 +236,16 @@ Creuse **lecture(char* nom_fichier){
     //tab joueur différent
     unsigned int index_gagnant=0, index_perdant = 0, nombre_joueur_different = 0;
     unsigned int *tab_joueur_different = malloc(sizeof(unsigned int)*(nombre_joueur_gagnant+nombre_joueur_jamais_gagne));
+    if (!tab_joueur_different)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        return NULL;
+    }
+
     while(index_gagnant<nombre_joueur_gagnant && index_perdant<nombre_joueur_jamais_gagne){
         if(index_perdant<nombre_joueur_jamais_gagne && tab_joueur_gagnant[index_gagnant]>tab_joueur_jamais_gagne[index_perdant]){
             tab_joueur_different[nombre_joueur_different] = tab_joueur_jamais_gagne[index_perdant];
@@ -244,6 +276,17 @@ Creuse **lecture(char* nom_fichier){
 
     //tab nombre victoires joueurs
     unsigned int *tab_victoire = calloc(nombre_joueur_gagnant, sizeof(unsigned int));
+    if (!tab_victoire)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        return NULL;
+    }
+
     tampon = tab_j1[0];
     index_gagnant = 0;
     for(unsigned int i=0; i<nombre_result; i++){
@@ -262,27 +305,141 @@ Creuse **lecture(char* nom_fichier){
     //création de la matrice
 
     Creuse *M = malloc(sizeof(Creuse));
-    if(!M)
+    if (!M)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        free(tab_victoire);
         return NULL;
+    }
+
     M->matricule_colonne = tab_joueur_gagnant;
     M->matricule_different = tab_joueur_different;
     M->nz = nombre_result;
     M->startCol = malloc(sizeof(unsigned int) * nombre_joueur_gagnant);
+    if (!M->startCol)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        free(tab_victoire);
+        free(M);
+        return NULL;
+    }
     M->rows = malloc(sizeof(int) * nombre_result);
+    if (!M->rows)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        free(tab_victoire);
+        free(M->startCol);
+        free(M);
+        return NULL;
+    }
     M->values = malloc(sizeof(float)*nombre_result);
+    if (!M->values)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        free(tab_victoire);
+        free(M->startCol);
+        free(M->rows);
+        free(M);
+        return NULL;
+    }
     M->taille_startCol = nombre_joueur_gagnant;
     M->nombre_joueur_different = nombre_joueur_different;
 
 
     Creuse *A = malloc(sizeof(Creuse));
-    if(!A)
+    if (!A)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        free(tab_victoire);
+        free(M->startCol);
+        free(M->rows);
+        free(M->values);
+        free(M);
         return NULL;
+    }
+
     A->matricule_colonne = tab_joueur_gagnant;
     A->matricule_different = tab_joueur_different;
     A->nz = nombre_result;
     A->startCol = malloc(sizeof(unsigned int) * nombre_joueur_gagnant);
+    if (!A->startCol)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        free(tab_victoire);
+        free(M->startCol);
+        free(M->rows);
+        free(M->values);
+        free(M);
+        free(A);
+        return NULL;
+    }
     A->rows = malloc(sizeof(int) * nombre_result);
+    if (!A->rows)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        free(tab_victoire);
+        free(M->startCol);
+        free(M->rows);
+        free(M->values);
+        free(M);
+        free(A->startCol);
+        free(A);
+        return NULL;
+    }
     A->values = malloc(sizeof(float) * nombre_result);
+    if (!A->values)
+    {
+        free(tab_j1);
+        free(tab_j2);
+        free(tab_matrice);
+        free(tab_joueur_gagnant);
+        free(tab_joueur_jamais_gagne);
+        free(tab_joueur_different);
+        free(tab_victoire);
+        free(M->startCol);
+        free(M->rows);
+        free(M->values);
+        free(M);
+        free(A->startCol);
+        free(A->rows);
+        free(A);
+        return NULL;
+    }
     A->taille_startCol = nombre_joueur_gagnant;
     A->nombre_joueur_different = nombre_joueur_different;
 
@@ -303,16 +460,31 @@ Creuse **lecture(char* nom_fichier){
     tab_matrice[0] = transpose(A);
     tab_matrice[1] = transpose(M);
 
-    free(A->matricule_colonne);
-    free(A->rows);
-    free(A->startCol);
-    free(A->values);
-    free(M->rows);
-    free(M->startCol);
-    free(M->values);
+    libereCreuse(A, 0, 0);
+    libereCreuse(M, 0, 1);
+
+    free(tab_j1);
+    free(tab_j2);
+    free(tab_victoire);
+    free(tab_joueur_jamais_gagne);
 
 
     return tab_matrice;
+}
+
+void libereCreuse(Creuse *matrice, int avec_index, int avec_matricule_colonne){
+    if(avec_matricule_colonne && matrice->matricule_colonne)
+        free(matrice->matricule_colonne);
+    if(matrice->startCol)
+        free(matrice->startCol);
+    if(matrice->rows)
+        free(matrice->rows);
+    if (matrice->values)
+        free(matrice->values);
+    if (avec_index && matrice->matricule_different)
+        free(matrice->matricule_different);
+    free(matrice);
+    matrice = NULL;
 }
 
 Creuse *transpose(Creuse *matrice){
@@ -430,6 +602,8 @@ Creuse *transpose(Creuse *matrice){
         matrice_transposee->values[indice_rows_transposee] = matrice->values[i];
     }
 
+    free(rowcount);
+    free(occurence_ligne);
 
     return matrice_transposee;
 }
@@ -498,15 +672,15 @@ Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
     int indice_col_matrice = 0;
     unsigned int taille_col = 0, taille_tab_ligne_nz = 0;
     unsigned int *ptaille_tab_ligne_nz = &taille_tab_ligne_nz;
-    unsigned int *tab_ligne_non_nulle = NULL, *tab_ligne_intermediaire = NULL;
+    int *tab_ligne_non_nulle = NULL, *tab_ligne_intermediaire = NULL;
     for(unsigned int i=0; i<vecteur_creux->nz; i++){
         if ((indice_col_matrice = recherche_dico(matrice->matricule_colonne, vecteur_creux->rows[i], matrice->taille_startCol)) != -1){
-            if(indice_col_matrice<(matrice->taille_startCol-1))
+            if((unsigned int)indice_col_matrice<(matrice->taille_startCol-1))
                 taille_col = matrice->startCol[indice_col_matrice + 1] - matrice->startCol[indice_col_matrice];
             else
                 taille_col = matrice->nz - matrice->startCol[indice_col_matrice];
         
-            tab_ligne_intermediaire = malloc(sizeof(unsigned int)*taille_col);
+            tab_ligne_intermediaire = malloc(sizeof(int)*taille_col);
             for(unsigned int j = 0; j<taille_col; j++){
                 tab_ligne_intermediaire[j]=matrice->rows[indice_col_matrice+j];
             }
@@ -533,13 +707,13 @@ Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
     for(unsigned int i = 0; i<vecteur_creux->nz; i++){
         if ((indice_col_matrice = recherche_dico(matrice->matricule_colonne, vecteur_creux->rows[i], matrice->taille_startCol)) != -1)
         {
-            if (indice_col_matrice < (matrice->taille_startCol - 1))
+            if ((unsigned int)indice_col_matrice < (matrice->taille_startCol - 1))
                 taille_col = matrice->startCol[indice_col_matrice + 1] - matrice->startCol[indice_col_matrice];
             else
                 taille_col = matrice->nz - matrice->startCol[indice_col_matrice];
 
             for(unsigned int j=0; j<taille_col; j++){
-                indice_value = recherche_dico(result_produit->rows, matrice->rows[matrice->startCol[indice_col_matrice]+j], result_produit->nz);
+                indice_value = recherche_dico((unsigned int*)result_produit->rows, matrice->rows[matrice->startCol[indice_col_matrice]+j], result_produit->nz);
                 result_produit->values[indice_value] += vecteur_creux->values[i] * matrice->values[matrice->startCol[indice_col_matrice + j]];
             }
         }
@@ -548,6 +722,7 @@ Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
     for(unsigned int i = 0; i<result_produit->nz; i++)
         printf("row[%u]:%u, value[%u]:%f\n", i, result_produit->rows[i], i, result_produit->values[i]);
 
+    
 
     return result_produit;
 }
