@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <math.h>
 #include "matriceCreuse.h"
 
 struct creuse_t
@@ -622,6 +623,8 @@ float *produitMatriceVecteurDense(Creuse *matrice, float *vecteur_dense){
             indice_Startcol++;
 
         resulat_produit[matrice->rows[i]] += vecteur_dense[matrice->matricule_colonne[indice_Startcol]] * matrice->values[i];
+        // if (resulat_produit[matrice->rows[i]]!=0)
+        //     printf("test2:%f\n", resulat_produit[matrice->rows[i]]);
     }
 
     
@@ -629,26 +632,26 @@ float *produitMatriceVecteurDense(Creuse *matrice, float *vecteur_dense){
 }
 
 Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
-    // if(!matrice || !vecteur_creux)
-    //     return NULL;
+    if(!matrice || !vecteur_creux)
+        return NULL;
 
 
     //initialisation vecteur test
-    vecteur_creux = malloc(sizeof(Creuse));
-    vecteur_creux->taille_startCol = 1;
-    vecteur_creux->startCol = malloc(sizeof(unsigned int));
-    vecteur_creux->startCol[0] = 0;
-    vecteur_creux->nz = 1;
-    vecteur_creux->rows = malloc(sizeof(unsigned int));
-    vecteur_creux->rows[0] = 0;
-    // vecteur_creux->rows[1] = 1;
-    // vecteur_creux->rows[2] = 2;
-    // vecteur_creux->rows[3] = 3;
-    vecteur_creux->values = malloc(sizeof(float));
-    vecteur_creux->values[0] = 1.;
-    // vecteur_creux->values[1] = 4.;
-    // vecteur_creux->values[2] = 1.5;
-    // vecteur_creux->values[3] = 1.;
+    // vecteur_creux = malloc(sizeof(Creuse));
+    // vecteur_creux->taille_startCol = 1;
+    // vecteur_creux->startCol = malloc(sizeof(unsigned int));
+    // vecteur_creux->startCol[0] = 0;
+    // vecteur_creux->nz = 1;
+    // vecteur_creux->rows = malloc(sizeof(unsigned int));
+    // vecteur_creux->rows[0] = 0;
+    // // vecteur_creux->rows[1] = 1;
+    // // vecteur_creux->rows[2] = 2;
+    // // vecteur_creux->rows[3] = 3;
+    // vecteur_creux->values = malloc(sizeof(float));
+    // vecteur_creux->values[0] = 1.;
+    // // vecteur_creux->values[1] = 4.;
+    // // vecteur_creux->values[2] = 1.5;
+    // // vecteur_creux->values[3] = 1.;
 
     if(vecteur_creux->taille_startCol!=1)
         return NULL;
@@ -719,10 +722,77 @@ Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux){
         }
     }
 
-    for(unsigned int i = 0; i<result_produit->nz; i++)
-        printf("row[%u]:%u, value[%u]:%f\n", i, result_produit->rows[i], i, result_produit->values[i]);
+    // for(unsigned int i = 0; i<result_produit->nz; i++)
+    //     printf("row[%u]:%u, value[%u]:%f\n", i, result_produit->rows[i], i, result_produit->values[i]);
 
     
-
     return result_produit;
+}
+
+float norme2_VecteurCreux(Creuse *vecteur)
+{
+    float norme = 0;
+    for (unsigned int i = 0; i < vecteur->nz; i++)
+        norme += vecteur->values[i] * vecteur->values[i];
+    return sqrt(norme);
+}
+
+float norme2_vecteurDense(float *vecteur, unsigned int taille){
+    float norme = 0;
+    for (unsigned int i = 0; i < taille; i++)
+        norme += vecteur[i] * vecteur[i];
+    return sqrt(norme);
+}
+
+float *puissance(Creuse *matrice)
+{
+    Creuse *vecteur_propre_creux = malloc(sizeof(Creuse));
+    float *w_dense = malloc(sizeof(float)*matrice->nombre_joueur_different);
+
+    vecteur_propre_creux->startCol = malloc(sizeof(unsigned int));
+    vecteur_propre_creux->startCol[0] = 0;
+    vecteur_propre_creux->rows = malloc(sizeof(int));
+    vecteur_propre_creux->rows[0] = 0;
+    vecteur_propre_creux->values = malloc(sizeof(unsigned int));
+    vecteur_propre_creux->values[0] = 1;
+    vecteur_propre_creux->nz = 1;
+    vecteur_propre_creux->taille_startCol = 1;
+
+    Creuse *w_creux = produitMatriceVecteurCreux(matrice, vecteur_propre_creux);
+    libereCreuse(vecteur_propre_creux, 0, 0);
+    float norme_w = norme2_VecteurCreux(w_creux);
+    float moyenne_pre = 0;
+    float moyenne = 0;
+
+    float *z = malloc(sizeof(float)*matrice->nombre_joueur_different);
+    for (unsigned int i = 0; i < w_creux->nz; i++)
+    {
+        z[w_creux->rows[i]] = w_creux->values[i]/norme_w;
+        moyenne += w_creux->values[i];
+        // printf("test1:%f\n", w_creux->values[i]);
+    }
+    moyenne/= w_creux->nz;
+    do
+    {
+        // printf("bite\n");   
+        moyenne_pre = moyenne;
+        // libereCreuse(w, 0, 0);
+        w_dense = produitMatriceVecteurDense(matrice, z);
+        // printf("%f\n", w->values[0]);
+        norme_w = norme2_vecteurDense(w_dense, matrice->nombre_joueur_different);
+        // libereCreuse(z, 0, 0);
+        moyenne = 0;
+        for (unsigned int i = 0; i < matrice->nombre_joueur_different; i++)
+        {
+            z[i] = w_dense[i]/norme_w;
+            moyenne+= w_dense[i];
+        }
+        moyenne/= matrice->nombre_joueur_different;
+        printf("valeur0:%f\n", w_dense[0]);
+    }while(fabs(moyenne - moyenne_pre)>0.000001);
+
+
+
+
+    return w_dense;
 }

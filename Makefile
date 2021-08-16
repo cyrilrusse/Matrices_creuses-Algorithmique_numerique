@@ -7,9 +7,9 @@
 
 # Tools & flags
 CC=gcc
-CFLAGS=--std=c99 --pedantic -Wall -W -Wmissing-prototypes
+CFLAGS=--std=c99 --pedantic -Wall -W -Wmissing-prototypes 
 LD=gcc
-LDFLAGS=
+LDFLAGS= -lm
 
 # Files
 EXEC=test

@@ -9,8 +9,8 @@ int main(){
 
 
 
-    Creuse *result = produitMatriceVecteurCreux(matrice[0], NULL);
     // libereCreuse(result, 0, 1);
+    float *test = puissance(matrice[0]);
 
     libereCreuse(matrice[0], 0, 0);
     libereCreuse(matrice[1], 1, 1);
