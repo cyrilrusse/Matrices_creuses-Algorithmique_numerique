@@ -16,4 +16,6 @@ float norme2_VecteurCreux(Creuse *vecteur);
 
 float norme2_vecteurDense(float *vecteur, unsigned int taille);
 
-    float *puissance(Creuse *matrice);
+float *puissance(Creuse *matrice);
+
+unsigned int get_nombre_joueur_different(Creuse *matrice);

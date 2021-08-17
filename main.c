@@ -3,14 +3,13 @@
 #include "matriceCreuse.h"
 
 int main(){
-    char *nom_fichier = "aft.txt";
+    char *nom_fichier = "aft_VP.txt";
 
     Creuse **matrice = lecture(nom_fichier);
 
+    
 
-
-    // libereCreuse(result, 0, 1);
-    float *test = puissance(matrice[0]);
+    float *test = puissance(matrice[1]);
 
     libereCreuse(matrice[0], 0, 0);
     libereCreuse(matrice[1], 1, 1);
