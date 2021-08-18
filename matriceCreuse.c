@@ -732,35 +732,83 @@ float norme2_vecteurDense(float *vecteur, unsigned int taille){
 float *puissance(Creuse *matrice)
 {
     Creuse *vecteur_propre_creux = malloc(sizeof(Creuse));
-    float *w_dense = malloc(sizeof(float)*matrice->nombre_joueur_different);
+    if(!vecteur_propre_creux){
+        free(matrice);
+        return NULL;
+        }
+
+    float *w_dense = NULL;
 
     vecteur_propre_creux->startCol = malloc(sizeof(unsigned int));
+    if (!vecteur_propre_creux->startCol)
+    {
+        free(vecteur_propre_creux);
+        free(matrice);
+        return NULL;
+    }
     vecteur_propre_creux->startCol[0] = 0;
     vecteur_propre_creux->rows = malloc(sizeof(int));
+    if (!vecteur_propre_creux->rows)
+    {
+        free(vecteur_propre_creux->startCol);
+        free(vecteur_propre_creux);
+        free(matrice);
+        return NULL;
+    }
     vecteur_propre_creux->rows[0] = 0;
     vecteur_propre_creux->values = malloc(sizeof(unsigned int));
+    if (!vecteur_propre_creux->values)
+    {
+        free(vecteur_propre_creux->startCol);
+        free(vecteur_propre_creux->rows);
+        free(vecteur_propre_creux);
+        free(matrice);
+        return NULL;
+    }
     vecteur_propre_creux->values[0] = 1;
     vecteur_propre_creux->nz = 1;
     vecteur_propre_creux->taille_startCol = 1;
 
     Creuse *w_creux = produitMatriceVecteurCreux(matrice, vecteur_propre_creux);
+    if (!w_creux)
+    {
+        libereCreuse(vecteur_propre_creux, 0, 0);
+        free(matrice);
+        return NULL;
+    }
     libereCreuse(vecteur_propre_creux, 0, 0);
     float norme_w = norme2_VecteurCreux(w_creux);
     float moyenne_pre = 0;
     float moyenne = 0;
 
     float *z = calloc(matrice->nombre_joueur_different, sizeof(float));
+    if (!z)
+    {
+        libereCreuse(w_creux, 0, 0);
+        libereCreuse(vecteur_propre_creux, 0, 0);
+        free(matrice);
+        return NULL;
+    }
     for (unsigned int i = 0; i < w_creux->nz; i++)
     {
         z[w_creux->rows[i]] = w_creux->values[i]/norme_w;
-        // printf("indice :%f\n", w_creux->rows[i]);
         moyenne += w_creux->values[i];
     }
     moyenne/= w_creux->nz;
     do
     {
         moyenne_pre = moyenne;
+        if(w_dense)
+            free(w_dense);
         w_dense = produitMatriceVecteurDense(matrice, z);
+        if (!w_dense)
+        {
+            free(z);
+            libereCreuse(w_creux, 0, 0);
+            libereCreuse(vecteur_propre_creux, 0, 0);
+            free(matrice);
+            return NULL;
+        }
         norme_w = norme2_vecteurDense(w_dense, matrice->nombre_joueur_different);
         moyenne = 0;
         for (unsigned int i = 0; i < matrice->nombre_joueur_different; i++)
@@ -772,7 +820,21 @@ float *puissance(Creuse *matrice)
     }while(fabs(moyenne - moyenne_pre)>0.0000001);
 
 
-    printf("valeur0:%f  \n", w_dense[0] / z[0]);
+    float Valeur_E_V = 0;
+
+    for(unsigned int i = 0; i<matrice->nombre_joueur_different; i++)
+        Valeur_E_V += w_dense[i]/matrice->nombre_joueur_different;    
+
+    // printf("%f\n", Valeur_E_V);
+    for(unsigned int i = 0; i<matrice->nombre_joueur_different; i++){
+        w_dense[i] += Valeur_E_V;
+        // printf("joueur %u: %f\n", i, w_dense[i]);
+        }
+
+    libereCreuse(matrice, 0, 1);
+    free(z);
+    libereCreuse(w_creux, 0, 0);
+
 
     return w_dense;
 }
