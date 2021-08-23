@@ -821,20 +821,24 @@ float *puissance(Creuse *matrice)
 
 
     float Valeur_E_V = 0;
+    
 
-    for(unsigned int i = 0; i<matrice->nombre_joueur_different; i++)
-        Valeur_E_V += w_dense[i]/matrice->nombre_joueur_different;    
+    // for(unsigned int i = 0; i<matrice->nombre_joueur_different; i++)
+    //     Valeur_E_V += w_dense[i]/matrice->nombre_joueur_different;    
 
-    // printf("%f\n", Valeur_E_V);
-    for(unsigned int i = 0; i<matrice->nombre_joueur_different; i++){
-        w_dense[i] += Valeur_E_V;
-        // printf("joueur %u: %f\n", i, w_dense[i]);
-        }
+    // for(unsigned int i = 0; i<matrice->nombre_joueur_different; i++)
+    //     w_dense[i] += Valeur_E_V;
 
-    libereCreuse(matrice, 0, 1);
+    printf("test: %f\n", w_dense[2]/z[2]);
+
+    // libereCreuse(matrice, 0, 1);
     free(z);
     libereCreuse(w_creux, 0, 0);
 
 
     return w_dense;
+}
+
+unsigned int *get_index(Creuse *matrice){
+    return matrice->matricule_different;
 }
