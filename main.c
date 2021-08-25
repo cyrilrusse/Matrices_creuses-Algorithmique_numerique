@@ -26,6 +26,7 @@ int main(){
     libereCreuse(matrice[0], 0, 0);
     libereCreuse(matrice[1], 1, 1);
     free(matrice);
+    free(vecteur_B_V);
 
     return 0;
 }

@@ -16,152 +16,54 @@ struct creuse_t
     unsigned int *matricule_different;
 };
 
-static void quicksort2(unsigned int *array1, unsigned int *array2, int p, int r);
 
-static int partition2(unsigned int *array1, unsigned int *array2, int p, int r);
+static void free_echec_allocation_memoire(int value, Creuse **tab_matrice, unsigned int *tabj1, unsigned int *tabj2, unsigned int *tab_joueur_gagnant, unsigned int *tab_joueur_jamais_gagne, unsigned int *tab_joueur_dif, unsigned int *tab_victoire);
 
-static void swap(unsigned int *array, int a, int b);
+static void free_matrice_echec_allocation_memoire(int value_matrice, Creuse *M);
 
-static void quicksort(unsigned int *array1, int p, int r);
+static float norme2_VecteurCreux(Creuse *vecteur);
 
-static int partition(unsigned int *array1, int p, int r);
+float norme2_vecteurDense(float *vecteur, unsigned int taille);
 
-static int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille);
 
-static int *union_tab(int *tab1, int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2);
 
 unsigned int get_nombre_joueur_different(Creuse *matrice){
     return matrice->nombre_joueur_different;
 }
 
-void quicksort(unsigned int *array1, int p, int r){
-    int position_pivot;
-    if (p < r)
-    {
-        position_pivot = partition(array1, p, r);
-        quicksort(array1, p, position_pivot - 1);
-        quicksort(array1, position_pivot + 1, r);
-    }
-}
-
-int partition(unsigned int *array1, int p, int r){
-    int i = p - 1;
-    for (int j = p; j < r; j++)
-    {
-        if (array1[j] <= array1[r])
-        {
-            i++;
-            swap(array1, i, j);
-        }
-    }
-    swap(array1, i + 1, r);
-
-    return i + 1;
-}
-
-void quicksort2(unsigned int *array1, unsigned int *array2, int p, int r)
+void free_echec_allocation_memoire(int value, Creuse **tab_matrice, unsigned int *tabj1, unsigned int *tabj2, unsigned int *tab_joueur_gagnant, unsigned int *tab_joueur_jamais_gagne, unsigned int *tab_joueur_dif, unsigned int *tab_victoire)
 {
-    int position_pivot;
-    if (p < r)
-    {
-        position_pivot = partition2(array1, array2, p, r);
-        quicksort2(array1, array2, p, position_pivot - 1);
-        quicksort2(array1, array2, position_pivot + 1, r);
-    }
+    if(value >= 0)
+        free(tab_matrice);
+    if(value >= 1)
+        free(tabj1);
+    if (value >= 2)
+        free(tabj2);
+    if (value >= 3)
+        free(tab_joueur_gagnant);
+    if (value >= 4)
+        free(tab_joueur_jamais_gagne);
+    if (value >= 5)
+        free(tab_joueur_dif);
+    if (value >= 6)
+        free(tab_victoire);
 }
 
-int partition2(unsigned int *array1, unsigned int *array2, int p, int r)
-{
-    int i = p - 1;
-    for (int j = p; j < r; j++)
-    {
-        if (array1[j] <= array1[r])
-        {
-            i++;
-            swap(array1, i, j);
-            swap(array2, i, j);
-        }
-    }
-    swap(array1, i + 1, r);
-    swap(array2, i + 1, r);
-
-    return i + 1;
+void free_matrice_echec_allocation_memoire(int value_matrice, Creuse *M){
+    if(value_matrice>=1)
+        free(M->startCol);
+    if(value_matrice>=2)
+        free(M->rows);
+    if(value_matrice>=3)
+        free(M->values);
+    if(value_matrice>=0)
+        free(M);
 }
 
-void swap(unsigned int *array, int a, int b)
-{
-    unsigned int temp = array[a];
-    array[a] = array[b];
-    array[b] = temp;
-}
-
-int recherche_dico(unsigned int *tab, unsigned int elem, unsigned int taille)
-{
-    if (taille == 0)
-        return -1;
-    unsigned int born_sup = taille - 1;
-    unsigned int born_inf = 0;
-    unsigned int centre;
-
-    while (born_sup >= born_inf){
-        centre = (born_inf + born_sup) / 2;
-        if (tab[centre] > elem){
-            if (!centre)
-                return -1;
-            born_sup = centre - 1;
-        }
-        else if (tab[centre] < elem){
-            born_inf = centre + 1;
-        }
-        else
-            return centre;
-    }
-    return -1;
-}
-
-int *union_tab(int *tab1, int *tab2, unsigned int *taille_tab1, unsigned int taille_tab2){
-    
-    unsigned int nombre_elem_dif = *taille_tab1;
-    if(nombre_elem_dif==0){
-        *taille_tab1 = taille_tab2;
-        return tab2;
-    }
-
-    for(unsigned int i = 0; i<taille_tab2; i++){
-        if(recherche_dico((unsigned int*)tab1, tab2[i], *taille_tab1)==-1)
-            nombre_elem_dif++;
-    }
-
-    int *tab_union = malloc(sizeof(int)*nombre_elem_dif);
-    if(!tab_union)
-        return NULL;
-
-    unsigned int indice_tab1=0, indice_tab2=0, indice_tab=0;
-    while ((indice_tab1<*taille_tab1 || indice_tab2<taille_tab2) && indice_tab<nombre_elem_dif){
-        if(tab1[indice_tab1]==tab2[indice_tab2]){
-            tab_union[indice_tab] = tab1[indice_tab1];
-            indice_tab1++;
-            indice_tab2++;
-        }
-        else if(tab1[indice_tab1]<tab2[indice_tab2]){
-            tab_union[indice_tab] = tab1[indice_tab1];
-            indice_tab1++;
-        }
-        else if (tab1[indice_tab1]>tab2[indice_tab2]){
-            tab_union[indice_tab] = tab2[indice_tab2];
-            indice_tab2++;
-        }
-        indice_tab++;
-    }
-
-    *taille_tab1 = nombre_elem_dif;
-    
-    free(tab1);
-    return tab_union;
-}
-
-Creuse **lecture(char* nom_fichier){
+Creuse **lecture(char *nom_fichier){
     Creuse **tab_matrice = malloc(sizeof(Creuse*)*2);
+    if(!tab_matrice)
+        return NULL;
     FILE *fichier;
     unsigned int tampon;
     unsigned int nombre_result = 0;
@@ -177,12 +79,18 @@ Creuse **lecture(char* nom_fichier){
     nombre_result/=3;
 
     unsigned int *tab_j1 = malloc(sizeof(unsigned int)*nombre_result);
+    if(!tab_j1){
+        free_echec_allocation_memoire(0, tab_matrice, NULL, NULL, NULL, NULL, NULL, NULL);
+        return NULL;
+    }
     unsigned int *tab_j2 = malloc(sizeof(unsigned int)*nombre_result);
+    if(!tab_j2){
+        free_echec_allocation_memoire(1, tab_matrice, tab_j1, NULL, NULL, NULL, NULL, NULL);
+        return NULL;
+    }
 
     if (!(fichier = fopen(nom_fichier, "r"))){
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
+        free_echec_allocation_memoire(2, tab_matrice, tab_j1, tab_j2, NULL, NULL, NULL, NULL);
         return NULL;
     }
 
@@ -202,11 +110,11 @@ Creuse **lecture(char* nom_fichier){
     }
     quicksort2(tab_j1, tab_j2, 0, nombre_result-1);
 
+    fclose(fichier);
+
     unsigned int *tab_joueur_gagnant = malloc(sizeof(unsigned int)*nombre_result);
     if(!tab_joueur_gagnant){
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
+        free_echec_allocation_memoire(2, tab_matrice, tab_j1, tab_j2, NULL, NULL, NULL, NULL);
         return NULL;
     }
 
@@ -221,12 +129,8 @@ Creuse **lecture(char* nom_fichier){
 
     //création tab joueur jamais gagne
     unsigned int *tab_joueur_jamais_gagne = malloc(sizeof(unsigned int)*nombre_result);
-    if (!tab_joueur_jamais_gagne)
-    {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
+    if (!tab_joueur_jamais_gagne){
+        free_echec_allocation_memoire(3, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, NULL, NULL, NULL);
         return NULL;
     }
 
@@ -241,13 +145,8 @@ Creuse **lecture(char* nom_fichier){
     //tab joueur différent
     unsigned int index_gagnant=0, index_perdant = 0, nombre_joueur_different = 0;
     unsigned int *tab_joueur_different = malloc(sizeof(unsigned int)*(nombre_joueur_gagnant+nombre_joueur_jamais_gagne));
-    if (!tab_joueur_different)
-    {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
+    if (!tab_joueur_different){
+        free_echec_allocation_memoire(4, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, NULL, NULL);
         return NULL;
     }
 
@@ -283,12 +182,7 @@ Creuse **lecture(char* nom_fichier){
     unsigned int *tab_victoire = calloc(nombre_joueur_gagnant, sizeof(unsigned int));
     if (!tab_victoire)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
+        free_echec_allocation_memoire(5, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, NULL);
         return NULL;
     }
 
@@ -312,13 +206,7 @@ Creuse **lecture(char* nom_fichier){
     Creuse *M = malloc(sizeof(Creuse));
     if (!M)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
-        free(tab_victoire);
+        free_echec_allocation_memoire(6, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, tab_victoire);
         return NULL;
     }
 
@@ -328,43 +216,22 @@ Creuse **lecture(char* nom_fichier){
     M->startCol = malloc(sizeof(unsigned int) * nombre_joueur_gagnant);
     if (!M->startCol)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
-        free(tab_victoire);
-        free(M);
+        free_echec_allocation_memoire(6, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, tab_victoire);
+        free_matrice_echec_allocation_memoire(0, M);
         return NULL;
     }
     M->rows = malloc(sizeof(int) * nombre_result);
     if (!M->rows)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
-        free(tab_victoire);
-        free(M->startCol);
-        free(M);
+        free_echec_allocation_memoire(6, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, tab_victoire);
+        free_matrice_echec_allocation_memoire(1, M);
         return NULL;
     }
     M->values = malloc(sizeof(float)*nombre_result);
     if (!M->values)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
-        free(tab_victoire);
-        free(M->startCol);
-        free(M->rows);
-        free(M);
+        free_echec_allocation_memoire(6, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, tab_victoire);
+        free_matrice_echec_allocation_memoire(2, M);
         return NULL;
     }
     M->taille_startCol = nombre_joueur_gagnant;
@@ -374,17 +241,8 @@ Creuse **lecture(char* nom_fichier){
     Creuse *A = malloc(sizeof(Creuse));
     if (!A)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
-        free(tab_victoire);
-        free(M->startCol);
-        free(M->rows);
-        free(M->values);
-        free(M);
+        free_echec_allocation_memoire(6, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, tab_victoire);
+        free_matrice_echec_allocation_memoire(3, M);
         return NULL;
     }
 
@@ -394,55 +252,25 @@ Creuse **lecture(char* nom_fichier){
     A->startCol = malloc(sizeof(unsigned int) * nombre_joueur_gagnant);
     if (!A->startCol)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
-        free(tab_victoire);
-        free(M->startCol);
-        free(M->rows);
-        free(M->values);
-        free(M);
-        free(A);
+        free_echec_allocation_memoire(6, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, tab_victoire);
+        free_matrice_echec_allocation_memoire(3, M);
+        free_matrice_echec_allocation_memoire(0, A);
         return NULL;
     }
     A->rows = malloc(sizeof(int) * nombre_result);
     if (!A->rows)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
-        free(tab_victoire);
-        free(M->startCol);
-        free(M->rows);
-        free(M->values);
-        free(M);
-        free(A->startCol);
-        free(A);
+        free_echec_allocation_memoire(6, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, tab_victoire);
+        free_matrice_echec_allocation_memoire(3, M);
+        free_matrice_echec_allocation_memoire(1, A);
         return NULL;
     }
     A->values = malloc(sizeof(float) * nombre_result);
     if (!A->values)
     {
-        free(tab_j1);
-        free(tab_j2);
-        free(tab_matrice);
-        free(tab_joueur_gagnant);
-        free(tab_joueur_jamais_gagne);
-        free(tab_joueur_different);
-        free(tab_victoire);
-        free(M->startCol);
-        free(M->rows);
-        free(M->values);
-        free(M);
-        free(A->startCol);
-        free(A->rows);
-        free(A);
+        free_echec_allocation_memoire(6, tab_matrice, tab_j1, tab_j2, tab_joueur_gagnant, tab_joueur_jamais_gagne, tab_joueur_different, tab_victoire);
+        free_matrice_echec_allocation_memoire(3, M);
+        free_matrice_echec_allocation_memoire(2, A);
         return NULL;
     }
     A->taille_startCol = nombre_joueur_gagnant;
@@ -465,8 +293,8 @@ Creuse **lecture(char* nom_fichier){
     tab_matrice[0] = transpose(A);
     tab_matrice[1] = transpose(M);
 
-    libereCreuse(A, 0, 0);
-    libereCreuse(M, 0, 1);
+    libereCreuse(A, 0, 1);
+    libereCreuse(M, 0, 0);
 
     free(tab_j1);
     free(tab_j2);
@@ -535,9 +363,8 @@ Creuse *transpose(Creuse *matrice){
 
     matrice_transposee->matricule_colonne = malloc(sizeof(unsigned int) * nombre_ligne);
     if(!matrice_transposee->matricule_colonne){
-        free(matrice_transposee);
+        free_matrice_echec_allocation_memoire(1, matrice_transposee);
         free(occurence_ligne);
-        free(matrice_transposee->startCol);
         free(rowcount);
         return NULL;
     }
@@ -545,23 +372,20 @@ Creuse *transpose(Creuse *matrice){
     matrice_transposee->rows = malloc(sizeof(int) * matrice->nz);
     if (!matrice_transposee->rows)
     {
-        free(matrice_transposee);
-        free(occurence_ligne);
-        free(matrice_transposee->startCol);
-        free(rowcount);
         free(matrice_transposee->matricule_colonne);
+        free_matrice_echec_allocation_memoire(1, matrice_transposee);
+        free(occurence_ligne);
+        free(rowcount);
         return NULL;
     }
 
     matrice_transposee->values = malloc(sizeof(float) * matrice->nz);
     if (!matrice_transposee->values)
     {
-        free(matrice_transposee->rows);
-        free(matrice_transposee);
-        free(occurence_ligne);
-        free(matrice_transposee->startCol);
-        free(rowcount);
         free(matrice_transposee->matricule_colonne);
+        free_matrice_echec_allocation_memoire(2, matrice_transposee);
+        free(occurence_ligne);
+        free(rowcount);
         return NULL;
     }
 
@@ -750,8 +574,7 @@ float *puissance(Creuse *matrice)
     vecteur_propre_creux->rows = malloc(sizeof(int));
     if (!vecteur_propre_creux->rows)
     {
-        free(vecteur_propre_creux->startCol);
-        free(vecteur_propre_creux);
+        free_matrice_echec_allocation_memoire(1, vecteur_propre_creux);
         free(matrice);
         return NULL;
     }
@@ -759,9 +582,7 @@ float *puissance(Creuse *matrice)
     vecteur_propre_creux->values = malloc(sizeof(unsigned int));
     if (!vecteur_propre_creux->values)
     {
-        free(vecteur_propre_creux->startCol);
-        free(vecteur_propre_creux->rows);
-        free(vecteur_propre_creux);
+        free_matrice_echec_allocation_memoire(2, vecteur_propre_creux);
         free(matrice);
         return NULL;
     }
