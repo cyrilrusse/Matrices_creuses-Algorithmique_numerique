@@ -23,11 +23,11 @@ static void free_matrice_echec_allocation_memoire(int value_matrice, Creuse *M);
 
 static float norme2_VecteurCreux(Creuse *vecteur);
 
-float norme2_vecteurDense(float *vecteur, unsigned int taille);
+static float norme2_vecteurDense(float *vecteur, unsigned int taille);
 
 
 
-unsigned int get_nombre_joueur_different(Creuse *matrice){
+unsigned int getNombreJoueurDifferent(Creuse *matrice){
     return matrice->nombre_joueur_different;
 }
 
@@ -660,6 +660,6 @@ float *puissance(Creuse *matrice)
     return w_dense;
 }
 
-unsigned int *get_index(Creuse *matrice){
+unsigned int *getIndex(Creuse *matrice){
     return matrice->matricule_different;
 }
