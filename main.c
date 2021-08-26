@@ -27,11 +27,12 @@ int main(){
     float *vecteur_B_V = puissance(matrice[0]);
 
 
-    libereCreuse(matrice[0], 0, 0);
+    libereCreuse(matrice[0], 0, 1);
     libereCreuse(matrice[1], 1, 1);
     free(matrice);
     free(vecteur_B_V);
     free(tab_victoire);
+    free(vecteur_pour_tab_victoire);
 
     return 0;
 }
