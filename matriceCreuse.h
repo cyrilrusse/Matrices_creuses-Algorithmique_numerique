@@ -51,6 +51,26 @@ Creuse *transpose(Creuse *matrice);
  */
 float *produitMatriceVecteurDense(Creuse *matrice, float *vecteur_dense);
 
+/**
+ * renvoit un pointeur vers une struct Creuse contenant 
+ * le produit entre une matrice Creuse et un vecteur creux.
+ * 
+ * PARAMETRES
+ * 
+ * matrice  un pointeur vers une struct Creuse, la matrice avec laquelle faire 
+ * le produit matriciel.
+ * 
+ * vecteur_creux    un pointeur vers une struct Creuse, le vecteur creux avec lequel faire
+ * le produit matriciel.
+ * 
+ * RETURN
+ * 
+ * result_prod  un pointeur vers une struct Creuse, 
+ * soit le vecteur resultant du produit entre matrice et vecteur_creux.
+ * 
+ * NULL         en cas d'erreur.
+ * 
+ */
 Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux);
 
 /**
@@ -70,6 +90,24 @@ Creuse *produitMatriceVecteurCreux(Creuse *matrice, Creuse *vecteur_creux);
  */
 void libereCreuse(Creuse *matrice, int avec_index, int avec_matricule_colonne);
 
+/**
+ * Calcule le vecteur propre associé à la valeur propre de plus grand module de matrice
+ * à l'aide de la technique de la puissance.
+ * 
+ * PARAMETRES
+ * 
+ * matrice  un pointeur vers une struct Creuse, la matrice dont on va chercher un 
+ * vecteur propre avec la technique de la puissance.
+ * 
+ * 
+ * RETURN
+ * 
+ * un pointeur vers un vecteur de float qui contient le vecteur propre de la 
+ * matrice trouvé à l'aide de la technique de la puissance.
+ * 
+ * NULL         en cas d'erreur.
+ * 
+ */
 float *puissance(Creuse *matrice);
 
 /**

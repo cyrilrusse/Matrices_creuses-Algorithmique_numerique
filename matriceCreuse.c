@@ -641,18 +641,6 @@ float *puissance(Creuse *matrice)
     }while(fabs(moyenne - moyenne_pre)>0.0000001);
 
 
-    float Valeur_E_V = 0;
-    
-
-    // for(unsigned int i = 0; i<matrice->nombre_joueur_different; i++)
-    //     Valeur_E_V += w_dense[i]/matrice->nombre_joueur_different;    
-
-    // for(unsigned int i = 0; i<matrice->nombre_joueur_different; i++)
-    //     w_dense[i] += Valeur_E_V;
-
-    printf("test: %f\n", w_dense[2]/z[2]);
-
-    // libereCreuse(matrice, 0, 1);
     free(z);
     libereCreuse(w_creux, 0, 0);
 
